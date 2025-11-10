@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore - NSF Knowledge Graph</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            height: calc(100vh - 60px);
+        }
+
+        .sidebar {
+            background: white;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+        }
+
+        .content {
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .node-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .node-item {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .node-item:hover {
+            background: #f8f9fa;
+        }
+
+        .node-name {
+            font-weight: 500;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .node-meta {
+            font-size: 11px;
+            color: #999;
+            margin-top: 3px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .detail-value {
+            color: #333;
+            text-align: right;
+        }
+
+        .connection-item {
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-left: 3px solid #667eea;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .connection-type {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+
+        .badge-organization { background: #e3f2fd; color: #1976d2; }
+        .badge-award { background: #fce4ec; color: #c2185b; }
+        .badge-person { background: #e8f5e9; color: #388e3c; }
+
+        .viz-frame {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 8px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .progress-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            font-family: sans-serif;
+            padding: 40px;
+        }
+
+        .progress-bar-outer {
+            width: 80%;
+            max-width: 400px;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-bar-inner {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            animation: progress 2s ease-in-out infinite;
+        }
+
+        @keyframes progress {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+
+        .progress-text {
+            color: #667eea;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .progress-subtext {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <div class="nav-title">NSF TIP Award Explorer</div>
+        <div>
+            <a href="/" class="nav-link">Home</a>
+            <a href="/explore" class="nav-link">Explore</a>
+            <a href="/analytics" class="nav-link">Analytics</a>
+            <a href="/chat" class="nav-link">AI Chat</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="section">
+                <h2>Browse</h2>
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('orgs')">Orgs</div>
+                    <div class="tab" onclick="switchTab('tech')">Tech</div>
+                    <div class="tab" onclick="switchTab('states')">States</div>
+                </div>
+
+                <input type="text" id="filterInput" class="search-box" placeholder="Filter...">
+
+                <div id="orgsTab" class="tab-content active">
+                    <div id="orgsList" class="node-list">
+                        <div class="loading">Loading organizations...</div>
+                    </div>
+                </div>
+
+                <div id="techTab" class="tab-content">
+                    <div id="techList" class="node-list">
+                        <div class="loading">Loading technologies...</div>
+                    </div>
+                </div>
+
+                <div id="statesTab" class="tab-content">
+                    <div id="statesList" class="node-list">
+                        <div class="loading">Loading states...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div id="detailsSection" class="section" style="display: none;">
+                <h2 id="nodeName">Node Details</h2>
+                <div id="nodeDetails"></div>
+
+                <h3 style="margin-top: 20px;">Visualization Options</h3>
+                <div style="display: flex; gap: 10px;">
+                    <button id="vizBtn1" class="btn btn-primary" onclick="visualize(1)">Depth 1 (Fast)</button>
+                    <button id="vizBtn2" class="btn btn-primary" onclick="visualize(2)">Depth 2 (Detailed)</button>
+                </div>
+            </div>
+
+            <div id="vizSection" class="section" style="display: none;">
+                <h2>Network Visualization</h2>
+                <iframe id="vizFrame" class="viz-frame"></iframe>
+            </div>
+
+            <div id="welcomeSection" class="section">
+                <h2>Welcome to the NSF TIP Award Explorer</h2>
+                <p style="color: #666; line-height: 1.6;">
+                    Browse organizations, technologies, and states in the sidebar to explore the network of 5,515 NSF TIP awards.
+                    Click on any item to view details and generate interactive visualizations.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentNode = null;
+        let allOrgs = [];
+        let allTech = [];
+        let allStates = [];
+
+        // Load data on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            await Promise.all([
+                loadOrganizations(),
+                loadTechnologies(),
+                loadStates()
+            ]);
+
+            // Check if node parameter in URL
+            const params = new URLSearchParams(window.location.search);
+            const nodeParam = params.get('node');
+            if (nodeParam) {
+                loadNodeDetails(nodeParam);
+            }
+        });
+
+        async function loadOrganizations() {
+            try {
+                const response = await fetch('/api/organizations');
+                allOrgs = await response.json();
+                renderOrganizations(allOrgs);
+            } catch (error) {
+                console.error('Error loading organizations:', error);
+            }
+        }
+
+        async function loadTechnologies() {
+            try {
+                const response = await fetch('/api/technologies');
+                allTech = await response.json();
+                renderTechnologies(allTech);
+            } catch (error) {
+                console.error('Error loading technologies:', error);
+            }
+        }
+
+        async function loadStates() {
+            try {
+                const response = await fetch('/api/states');
+                allStates = await response.json();
+                renderStates(allStates);
+            } catch (error) {
+                console.error('Error loading states:', error);
+            }
+        }
+
+        function renderOrganizations(orgs) {
+            const html = orgs.map(org => `
+                <div class="node-item" onclick="loadNodeDetails('${org.name.replace(/'/g, "\\'")}')">
+                    <div class="node-name">${org.name}</div>
+                    <div class="node-meta">${org.awards} awards • $${(org.funding/1e6).toFixed(1)}M</div>
+                </div>
+            `).join('');
+            document.getElementById('orgsList').innerHTML = html || '<div class="loading">No organizations found</div>';
+        }
+
+        function renderTechnologies(techs) {
+            const html = techs.map(tech => `
+                <div class="node-item" onclick="loadNodeDetails('${tech.name.replace(/'/g, "\\'")}')">
+                    <div class="node-name">${tech.name}</div>
+                    <div class="node-meta">${tech.awards} awards • $${(tech.funding/1e6).toFixed(1)}M</div>
+                </div>
+            `).join('');
+            document.getElementById('techList').innerHTML = html || '<div class="loading">No technologies found</div>';
+        }
+
+        function renderStates(states) {
+            const html = states.map(state => `
+                <div class="node-item" onclick="loadNodeDetails('${state.name.replace(/'/g, "\\'")}')">
+                    <div class="node-name">${state.name}</div>
+                    <div class="node-meta">${state.organizations} orgs • ${state.awards} awards</div>
+                </div>
+            `).join('');
+            document.getElementById('statesList').innerHTML = html || '<div class="loading">No states found</div>';
+        }
+
+        // Filter functionality
+        document.getElementById('filterInput').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const activeTab = document.querySelector('.tab.active').textContent.toLowerCase();
+
+            if (activeTab === 'orgs') {
+                const filtered = allOrgs.filter(o => o.name.toLowerCase().includes(query));
+                renderOrganizations(filtered);
+            } else if (activeTab === 'tech') {
+                const filtered = allTech.filter(t => t.name.toLowerCase().includes(query));
+                renderTechnologies(filtered);
+            } else if (activeTab === 'states') {
+                const filtered = allStates.filter(s => s.name.toLowerCase().includes(query));
+                renderStates(filtered);
+            }
+        });
+
+        function switchTab(tabName) {
+            // Update tab styling
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+
+            if (tabName === 'orgs') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('orgsTab').classList.add('active');
+            } else if (tabName === 'tech') {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('techTab').classList.add('active');
+            } else if (tabName === 'states') {
+                document.querySelectorAll('.tab')[2].classList.add('active');
+                document.getElementById('statesTab').classList.add('active');
+            }
+
+            document.getElementById('filterInput').value = '';
+        }
+
+        async function loadNodeDetails(nodeId) {
+            currentNode = nodeId;
+
+            // Show details section, hide welcome
+            document.getElementById('welcomeSection').style.display = 'none';
+            document.getElementById('detailsSection').style.display = 'block';
+            document.getElementById('vizSection').style.display = 'none';
+
+            document.getElementById('nodeName').textContent = nodeId;
+            document.getElementById('nodeDetails').innerHTML = '<div class="loading">Loading details...</div>';
+
+            try {
+                const response = await fetch(`/api/node/${encodeURIComponent(nodeId)}`);
+                const details = await response.json();
+
+                let html = `
+                    <div class="detail-row">
+                        <span class="detail-label">Type</span>
+                        <span class="detail-value">${details.type}</span>
+                    </div>
+                `;
+
+                // Add type-specific details
+                for (const [key, value] of Object.entries(details.properties || {})) {
+                    if (key !== 'type') {
+                        html += `
+                            <div class="detail-row">
+                                <span class="detail-label">${key}</span>
+                                <span class="detail-value">${value}</span>
+                            </div>
+                        `;
+                    }
+                }
+
+                // Show connections - group by relationship type
+                if (details.outgoing_connections && details.outgoing_connections.length > 0) {
+                    html += '<h3 style="margin-top: 20px;">Outgoing Connections</h3>';
+
+                    // Group connections by relationship type
+                    const outgoingByType = {};
+                    details.outgoing_connections.forEach(conn => {
+                        if (!outgoingByType[conn.relationship]) {
+                            outgoingByType[conn.relationship] = [];
+                        }
+                        outgoingByType[conn.relationship].push(conn.to);
+                    });
+
+                    // Display grouped connections
+                    for (const [relType, targets] of Object.entries(outgoingByType)) {
+                        // For "AWARDED_TO" relationships, just show count
+                        if (relType === 'AWARDED_TO') {
+                            html += `
+                                <div class="connection-item">
+                                    <div class="connection-type">${relType}</div>
+                                    <div>${targets.length} award(s)</div>
+                                </div>
+                            `;
+                        } else {
+                            // For other relationships, show up to 5 items
+                            targets.slice(0, 5).forEach(target => {
+                                html += `
+                                    <div class="connection-item">
+                                        <div class="connection-type">${relType}</div>
+                                        <div>${target}</div>
+                                    </div>
+                                `;
+                            });
+                            if (targets.length > 5) {
+                                html += `<div style="color: #999; font-size: 12px; margin-left: 15px; margin-bottom: 8px;">+${targets.length - 5} more</div>`;
+                            }
+                        }
+                    }
+                }
+
+                if (details.incoming_connections && details.incoming_connections.length > 0) {
+                    html += '<h3 style="margin-top: 20px;">Incoming Connections</h3>';
+
+                    // Group connections by relationship type
+                    const incomingByType = {};
+                    details.incoming_connections.forEach(conn => {
+                        if (!incomingByType[conn.relationship]) {
+                            incomingByType[conn.relationship] = [];
+                        }
+                        incomingByType[conn.relationship].push(conn.from);
+                    });
+
+                    // Display grouped connections
+                    for (const [relType, sources] of Object.entries(incomingByType)) {
+                        // For "AWARDED_TO" relationships, just show count
+                        if (relType === 'AWARDED_TO') {
+                            html += `
+                                <div class="connection-item">
+                                    <div class="connection-type">${relType}</div>
+                                    <div>${sources.length} award(s)</div>
+                                </div>
+                            `;
+                        } else {
+                            // For other relationships, show up to 5 items
+                            sources.slice(0, 5).forEach(source => {
+                                html += `
+                                    <div class="connection-item">
+                                        <div class="connection-type">${relType}</div>
+                                        <div>${source}</div>
+                                    </div>
+                                `;
+                            });
+                            if (sources.length > 5) {
+                                html += `<div style="color: #999; font-size: 12px; margin-left: 15px; margin-bottom: 8px;">+${sources.length - 5} more</div>`;
+                            }
+                        }
+                    }
+                }
+
+                document.getElementById('nodeDetails').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading node details:', error);
+                document.getElementById('nodeDetails').innerHTML = '<div class="loading">Error loading details</div>';
+            }
+        }
+
+        async function visualize(depth) {
+            if (!currentNode) return;
+
+            // Disable buttons during generation
+            const btn1 = document.getElementById('vizBtn1');
+            const btn2 = document.getElementById('vizBtn2');
+            const originalText1 = btn1.innerHTML;
+            const originalText2 = btn2.innerHTML;
+
+            btn1.disabled = true;
+            btn2.disabled = true;
+            btn1.style.opacity = '0.6';
+            btn2.style.opacity = '0.6';
+
+            if (depth === 1) {
+                btn1.innerHTML = '⏳ Generating...';
+            } else {
+                btn2.innerHTML = '⏳ Generating...';
+            }
+
+            document.getElementById('vizSection').style.display = 'block';
+            document.getElementById('vizFrame').src = '';
+
+            // Show initial progress bar with specific ID for updates
+            const progressHTML = `
+                <div class="progress-container">
+                    <div class="progress-text" id="progressText">🌐 Starting...</div>
+                    <div class="progress-bar-outer">
+                        <div class="progress-bar-inner" id="progressBar" style="width: 0%; animation: none; transition: width 0.3s;"></div>
+                    </div>
+                    <div class="progress-subtext" id="progressSubtext">Initializing...</div>
+                    <div class="progress-subtext" id="progressDetails" style="margin-top: 10px; font-size: 12px;">
+
+                    </div>
+                </div>
+            `;
+            document.getElementById('vizFrame').srcdoc = progressHTML;
+
+            try {
+                // Start the visualization job
+                const response = await fetch('/api/visualize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        node: currentNode,
+                        depth: depth
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.job_id) {
+                    // Connect to SSE stream for progress updates
+                    const eventSource = new EventSource(`/api/visualize/progress/${result.job_id}`);
+
+                    eventSource.onmessage = function(event) {
+                        const data = JSON.parse(event.data);
+                        const iframe = document.getElementById('vizFrame');
+
+                        // Update progress in the iframe
+                        if (iframe.contentWindow) {
+                            const progressBar = iframe.contentWindow.document.getElementById('progressBar');
+                            const progressText = iframe.contentWindow.document.getElementById('progressText');
+                            const progressSubtext = iframe.contentWindow.document.getElementById('progressSubtext');
+                            const progressDetails = iframe.contentWindow.document.getElementById('progressDetails');
+
+                            if (progressBar) progressBar.style.width = data.progress + '%';
+                            if (progressText) progressText.textContent = '🌐 ' + (data.stage || 'Processing');
+                            if (progressSubtext) progressSubtext.textContent = data.message;
+                            if (progressDetails && data.total_nodes) {
+                                progressDetails.textContent = `Graph size: ${data.total_nodes} nodes`;
+                            }
+                        }
+
+                        // When complete, load the visualization
+                        if (data.status === 'complete') {
+                            eventSource.close();
+                            setTimeout(() => {
+                                const vizUrl = data.url || result.url;
+                                console.log('Loading visualization:', vizUrl);
+                                const iframe = document.getElementById('vizFrame');
+                                // Clear srcdoc first to allow src to work
+                                iframe.removeAttribute('srcdoc');
+                                iframe.src = vizUrl;
+                            }, 500);
+                        } else if (data.status === 'error') {
+                            eventSource.close();
+                            document.getElementById('vizFrame').srcdoc = '<div class="progress-container"><div class="progress-text" style="color: #f44336;">❌ Error: ' + data.message + '</div></div>';
+                        }
+                    };
+
+                    eventSource.onerror = function() {
+                        eventSource.close();
+                        // Still try to load the result if it was successful
+                        if (result.url) {
+                            document.getElementById('vizFrame').src = result.url;
+                        }
+                    };
+                } else {
+                    document.getElementById('vizFrame').srcdoc = '<div class="progress-container"><div class="progress-text" style="color: #f44336;">❌ Error generating visualization</div></div>';
+                }
+            } catch (error) {
+                console.error('Visualization error:', error);
+                document.getElementById('vizFrame').srcdoc = '<div class="progress-container"><div class="progress-text" style="color: #f44336;">❌ Error generating visualization</div><div class="progress-subtext">' + error.message + '</div></div>';
+            } finally {
+                // Re-enable buttons
+                setTimeout(() => {
+                    btn1.disabled = false;
+                    btn2.disabled = false;
+                    btn1.style.opacity = '1';
+                    btn2.style.opacity = '1';
+                    btn1.innerHTML = originalText1;
+                    btn2.innerHTML = originalText2;
+                }, 1000);
+            }
+        }
+    </script>
+</body>
+</html>

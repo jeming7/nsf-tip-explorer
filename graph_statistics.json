@@ -1,0 +1,23 @@
+{
+  "total_nodes": 16912,
+  "total_edges": 31538,
+  "node_counts": {
+    "Award": 5513,
+    "Person": 7701,
+    "Organization": 2738,
+    "State": 55,
+    "County": 497,
+    "Program": 14,
+    "Technology_Area": 394
+  },
+  "edge_counts": {
+    "LEADS": 6015,
+    "AWARDED_TO": 5513,
+    "LOCATED_IN_STATE": 2738,
+    "LOCATED_IN_COUNTY": 2738,
+    "FUNDED_BY": 5513,
+    "INVOLVES_TECH": 5789,
+    "CO_LEADS": 3232
+  },
+  "density": 0.00011027317761913097
+}

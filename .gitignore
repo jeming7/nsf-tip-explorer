@@ -1,0 +1,34 @@
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Application specific
+static/viz_*.html
+*.graphml.bak
+
+# Pre-made visualizations (large files)
+*_network.html
+*_network_lite.html
+
+# Data files (large)
+*.xlsx
