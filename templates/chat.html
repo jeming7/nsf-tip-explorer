@@ -463,6 +463,24 @@
                     })
                 });
 
+                // Check if response is OK
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error('Response error:', text);
+                    loadingEl.remove();
+                    addError(`Server error: ${response.status} - ${text.substring(0, 200)}`);
+                    return;
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    loadingEl.remove();
+                    addError(`Server returned non-JSON response. Check console for details.`);
+                    return;
+                }
+
                 const data = await response.json();
 
                 // Remove loading
@@ -477,8 +495,9 @@
                     addError(data.error || 'An error occurred');
                 }
             } catch (error) {
+                console.error('Fetch error:', error);
                 loadingEl.remove();
-                addError(error.message);
+                addError(`Error: ${error.message}`);
             } finally {
                 // Re-enable input
                 document.getElementById('sendBtn').disabled = false;
