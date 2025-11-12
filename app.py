@@ -262,18 +262,21 @@ def chat_query():
     """Handle natural language queries via Claude"""
     global claude_handler, conversation_handlers
 
-    data = request.json
-    user_message = data.get('message', '')
-    api_key = data.get('api_key', os.environ.get('ANTHROPIC_API_KEY'))
-    conversation_id = data.get('conversation_id')
-
-    if not user_message:
-        return jsonify({'error': 'Message is required'}), 400
-
-    if not api_key:
-        return jsonify({'error': 'API key is required. Please provide your Anthropic API key.'}), 401
-
     try:
+        data = request.json
+        if not data:
+            return jsonify({'success': False, 'error': 'Invalid JSON data'}), 400
+
+        user_message = data.get('message', '')
+        api_key = data.get('api_key', os.environ.get('ANTHROPIC_API_KEY'))
+        conversation_id = data.get('conversation_id')
+
+        if not user_message:
+            return jsonify({'success': False, 'error': 'Message is required'}), 400
+
+        if not api_key:
+            return jsonify({'success': False, 'error': 'API key is required. Please set ANTHROPIC_API_KEY environment variable.'}), 401
+
         # Create or get conversation handler
         if not conversation_id:
             conversation_id = str(uuid.uuid4())
@@ -297,7 +300,7 @@ def chat_query():
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/chat/reset', methods=['POST'])
 def chat_reset():
