@@ -19,7 +19,7 @@ class ClaudeQueryHandler:
             raise ValueError("ANTHROPIC_API_KEY must be provided or set in environment")
 
         self.client = Anthropic(api_key=self.api_key)
-        self.model = "claude-sonnet-4-5-20250929"
+        self.model = "claude-haiku-4-20250923"
         self.conversation_history = []
 
         # System prompt that explains the knowledge graph
